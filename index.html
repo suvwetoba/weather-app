@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Frontend Mentor | Weather app</title>
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="./assets/images/favicon-32x32.png"
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <header class="app-header">
+        <div class="logo">
+          <img
+            src="./assets/images/logo.svg"
+            alt="Weather Now Logo"
+            class="logo-img"
+          />
+        </div>
+
+        <div class="units-container">
+          <button id="units-toggle" class="btn-icon">
+            Units
+            <i
+              class="fa-solid fa-chevron-down"
+              style="font-size: 0.8em; margin-left: 5px"
+            ></i>
+          </button>
+
+          <div class="units-dropdown hidden" id="units-menu">
+            <p class="dropdown-label">Temperature</p>
+            <div class="toggle-option selected" data-unit="celsius">
+              Celsius (°C)
+            </div>
+            <div class="toggle-option" data-unit="fahrenheit">
+              Fahrenheit (°F)
+            </div>
+
+            <p class="dropdown-label">Wind Speed</p>
+            <div class="toggle-option selected" data-unit="kmh">km/h</div>
+            <div class="toggle-option" data-unit="mph">mph</div>
+
+            <p class="dropdown-label">Precipitation</p>
+            <div class="toggle-option selected" data-unit="mm">
+              Millimeters (mm)
+            </div>
+            <div class="toggle-option" data-unit="in">Inches (in)</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="dashboard-grid">
+        <section class="main-column">
+          <div class="hero-header">
+            <h1>How's the sky looking today?</h1>
+          </div>
+
+          <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input
+              type="text"
+              id="city-input"
+              placeholder="Search for a city, e.g., New York"
+            />
+            <button id="search-btn">Search</button>
+          </div>
+
+          <div class="current-weather-card">
+            <div class="weather-text">
+              <h2 id="location-display">Berlin, Germany</h2>
+              <p id="date-display">Tuesday, Aug 5, 2025</p>
+            </div>
+
+            <div class="weather-visuals">
+              <div class="icon-wrapper">
+                <img
+                  src="./assets/images/icon-sunny.webp"
+                  alt="Weather Icon"
+                  id="current-weather-icon"
+                />
+              </div>
+              <div class="temp-display"><span id="current-temp">20</span>°</div>
+            </div>
+          </div>
+
+          <div class="highlights-grid">
+            <div class="highlight-card">
+              <p class="label">Feels like</p>
+              <p class="value"><span id="feels-like">18</span>°</p>
+            </div>
+            <div class="highlight-card">
+              <p class="label">Humidity</p>
+              <p class="value"><span id="humidity">46</span>%</p>
+            </div>
+            <div class="highlight-card">
+              <p class="label">Wind</p>
+              <p class="value">
+                <span id="wind-speed">14</span>
+                <span class="unit-wind">km/h</span>
+              </p>
+            </div>
+            <div class="highlight-card">
+              <p class="label">Precipitation</p>
+              <p class="value">
+                <span id="precipitation">0</span>
+                <span class="unit-precip">mm</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="daily-forecast-container">
+            <h3>Daily forecast</h3>
+            <div class="daily-grid" id="daily-grid"></div>
+          </div>
+        </section>
+
+        <aside class="sidebar-column">
+          <div class="hourly-header">
+            <h3>Hourly forecast</h3>
+            <select id="hourly-day-select" class="day-select"></select>
+          </div>
+
+          <div class="hourly-list" id="hourly-list"></div>
+        </aside>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

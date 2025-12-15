@@ -1,0 +1,354 @@
+/* 1. FONTS & VARIABLES */
+@font-face {
+    font-family: 'DM Sans';
+    src: url('./assets/fonts/DM_Sans/DMSans-Regular.ttf') format('truetype'); 
+    font-weight: 400;
+}
+@font-face {
+    font-family: 'Bricolage Grotesque';
+    src: url('./assets/fonts/Bricolage_Grotesque/BricolageGrotesque-Bold.ttf') format('truetype');
+    font-weight: 700;
+}
+
+:root {
+    --bg-dark: #0B131E;       
+    --bg-card: #202B3B;       
+    --bg-card-hover: #2A3648; 
+    --accent-blue: #3E61E9;   
+    --text-white: #FFFFFF;
+    --text-gray: #9399A2;
+    --border-radius: 16px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'DM Sans', sans-serif;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+h1, h2, h3, .temp-display {
+    font-family: 'Bricolage Grotesque', sans-serif;
+}
+
+/* 2. LAYOUT WRAPPERS */
+.app-wrapper {
+    width: 100%;
+    max-width: 1200px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Mobile Default (1 Col) */
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* 3. HEADER & UNITS */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.logo-img { height: 32px; }
+
+.units-container { position: relative; }
+
+#units-toggle {
+    background-color: var(--bg-card);
+    color: var(--text-white);
+    border: none;
+    padding: 10px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* Use your SVG icon for the button */
+#units-toggle::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-image: url('./assets/images/icon-units.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+#units-toggle i { display: none; }
+
+.units-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    padding: 15px;
+    width: 200px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 100;
+    margin-top: 10px;
+}
+
+.hidden { display: none; }
+
+.dropdown-label {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    margin-bottom: 5px;
+    margin-top: 10px;
+}
+.dropdown-label:first-child { margin-top: 0; }
+
+.toggle-option {
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+}
+.toggle-option:hover { background-color: rgba(255,255,255,0.1); }
+.toggle-option.selected::after { content: '✓'; color: var(--accent-blue); }
+
+/* 4. MAIN DASHBOARD COMPONENTS */
+.hero-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-align: center; /* Centered on Mobile */
+}
+
+/* Search Bar */
+.search-container {
+    background-color: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-container input {
+    background: transparent;
+    border: none;
+    color: var(--text-white);
+    flex-grow: 1;
+    font-size: 1rem;
+    outline: none;
+}
+.search-icon { color: var(--text-gray); }
+
+#search-btn {
+    background-color: var(--accent-blue);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* --- Current Weather Card (Updated Backgrounds) --- */
+.current-weather-card {
+    /* Use the Small SVG for Mobile */
+    background-image: url('./assets/images/bg-today-small.svg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: var(--accent-blue); /* Fallback */
+    
+    border-radius: var(--border-radius);
+    padding: 30px;
+    color: white;
+    
+    /* Mobile: Stack Vertically */
+    display: flex;
+    flex-direction: column; 
+    align-items: center;    
+    text-align: center;     
+    gap: 20px;
+    margin-bottom: 20px;
+    
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.weather-text h2 {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+.weather-text p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.weather-visuals {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px; 
+}
+
+.weather-visuals img {
+    width: 80px; 
+    height: 80px;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
+}
+
+.temp-display {
+    font-size: 4.5rem; /* Large font for mobile */
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Highlights Grid (2x2 on Mobile) */
+.highlights-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.highlight-card {
+    background-color: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.highlight-card .label { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 10px; }
+.highlight-card .value { font-size: 1.8rem; font-weight: 600; }
+
+/* Daily Forecast (3 Cols on Mobile) */
+.daily-forecast-container h3, .hourly-header h3 {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.daily-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 Columns on Mobile */
+    gap: 10px;
+}
+
+.day-card {
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    padding: 15px 10px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.day-card img { width: 40px; height: 40px; }
+.day-card .day-temp { font-size: 0.9rem; font-weight: 600; }
+.day-card .day-temp span { color: var(--text-gray); font-weight: 400; margin-left: 4px; }
+
+
+/* 5. SIDEBAR (HOURLY) */
+.sidebar-column {
+    background-color: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    height: fit-content;
+}
+
+.hourly-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.day-select {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+}
+.day-select option { background-color: var(--bg-card); color: white; }
+
+.hourly-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.hourly-item:last-child { border-bottom: none; }
+.hourly-item .hour { font-weight: 600; width: 50px; }
+.hourly-item .small-icon { width: 30px; height: 30px; }
+.hourly-item .temp { font-weight: 600; }
+
+.attribution { 
+    margin-top: 40px; text-align: center; color: var(--text-gray); font-size: 12px; 
+}
+.attribution a { color: var(--accent-blue); }
+
+/* ========================================= */
+/* 6. MEDIA QUERIES (DESKTOP)                */
+/* ========================================= */
+
+@media (min-width: 850px) {
+    /* Switch Main Grid to 2 Columns */
+    .dashboard-grid {
+        grid-template-columns: 3fr 1.2fr;
+    }
+
+    /* Switch Daily Forecast to 7 Columns */
+    .daily-grid {
+        grid-template-columns: repeat(7, 1fr);
+    }
+    
+    /* Revert Header to Left Align */
+    .hero-header h1 {
+        text-align: left;
+    }
+
+    /* Change Card to Horizontal Layout & LARGE Background */
+    .current-weather-card {
+        background-image: url('./assets/images/bg-today-large.svg'); /* Desktop Image */
+        
+        flex-direction: row; 
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+    }
+
+    .weather-visuals {
+        flex-direction: row;
+    }
+    
+    .weather-visuals img {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .temp-display {
+        font-size: 5rem;
+    }
+}
