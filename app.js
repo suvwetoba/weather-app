@@ -9,12 +9,15 @@ let unitSettings = {
     wind: 'kmh',            
     precipitation: 'mm'     
 };
+let searchTimeout = null;
 
 // ==============================================
 // 2. SELECT DOM ELEMENTS
 // ==============================================
 const searchBtn = document.getElementById('search-btn');
 const cityInput = document.getElementById('city-input');
+const suggestionsList = document.getElementById('suggestions-list');
+const locationBtn = document.getElementById('location-btn'); // NEW: Location Button
 
 // Header & Units
 const unitsToggle = document.getElementById('units-toggle');
@@ -51,20 +54,52 @@ searchBtn.addEventListener('click', () => {
 
 cityInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
+        suggestionsList.classList.add('hidden'); 
         const city = cityInput.value.trim();
         if (city) getCityCoordinates(city);
+    }
+});
+
+// --- NEW: Handle Current Location Button ---
+locationBtn.addEventListener('click', () => {
+    if (navigator.geolocation) {
+        // Show loading state (optional: verify console)
+        console.log("Locating user...");
+        navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError);
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+});
+
+// --- Handle Typing for Autosuggest ---
+cityInput.addEventListener('input', () => {
+    const query = cityInput.value.trim();
+    
+    if (searchTimeout) clearTimeout(searchTimeout);
+    
+    if (query.length < 3) {
+        suggestionsList.classList.add('hidden'); 
+        return;
+    }
+
+    searchTimeout = setTimeout(() => {
+        fetchCitySuggestions(query);
+    }, 300);
+});
+
+// --- Close dropdown if clicking outside ---
+document.addEventListener('click', (e) => {
+    if (!unitsToggle.contains(e.target) && !unitsMenu.contains(e.target)) {
+        unitsMenu.classList.add('hidden');
+    }
+    if (!cityInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+        suggestionsList.classList.add('hidden');
     }
 });
 
 unitsToggle.addEventListener('click', (e) => {
     e.stopPropagation(); 
     unitsMenu.classList.toggle('hidden');
-});
-
-document.addEventListener('click', (e) => {
-    if (!unitsToggle.contains(e.target) && !unitsMenu.contains(e.target)) {
-        unitsMenu.classList.add('hidden');
-    }
 });
 
 unitOptions.forEach(option => {
@@ -74,12 +109,9 @@ unitOptions.forEach(option => {
     });
 });
 
-// --- UPDATED LISTENER: Handle Day Change ---
 hourlyDaySelect.addEventListener('change', () => {
     if (storedWeatherData) {
-        // 1. Update the list on the right/bottom
         updateHourlyForecast(storedWeatherData);
-        // 2. Update the Big Blue Card to match the selected day
         updateMainCard(parseInt(hourlyDaySelect.value));
     }
 });
@@ -88,6 +120,45 @@ hourlyDaySelect.addEventListener('change', () => {
 // ==============================================
 // 4. CORE FUNCTIONS
 // ==============================================
+
+// --- NEW: Handle Geolocation Success ---
+async function onLocationSuccess(position) {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    currentLat = lat;
+    currentLon = lon;
+
+    // 1. Get City Name from Coordinates (Reverse Geocoding)
+    try {
+        const reverseGeoUrl = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&count=1&language=en&format=json`;
+        const response = await fetch(reverseGeoUrl);
+        const data = await response.json();
+
+        if (data.results && data.results.length > 0) {
+            const city = data.results[0];
+            // Construct name: "City, State, Country"
+            let locationParts = [city.name];
+            if (city.admin1 && city.admin1 !== city.name) locationParts.push(city.admin1);
+            if (city.country) locationParts.push(city.country);
+            
+            locationDisplay.textContent = locationParts.join(', ');
+        } else {
+            locationDisplay.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
+        }
+    } catch (error) {
+        console.error("Error finding city name:", error);
+        locationDisplay.textContent = "Current Location";
+    }
+
+    // 2. Fetch Weather
+    getWeatherData();
+}
+
+function onLocationError(error) {
+    console.error("Geolocation error:", error);
+    alert("Unable to retrieve your location. Please check your browser permissions.");
+}
 
 async function getCityCoordinates(cityName) {
     try {
@@ -100,10 +171,12 @@ async function getCityCoordinates(cityName) {
             return;
         }
 
-        const { latitude, longitude, name, country } = geoData.results[0];
+        const { latitude, longitude, name, country, admin1 } = geoData.results[0];
         currentLat = latitude;
         currentLon = longitude;
-        locationDisplay.textContent = `${name}, ${country}`;
+        
+        const displayLocation = admin1 ? `${name}, ${admin1}, ${country}` : `${name}, ${country}`;
+        locationDisplay.textContent = displayLocation;
         
         getWeatherData();
 
@@ -112,8 +185,63 @@ async function getCityCoordinates(cityName) {
     }
 }
 
+async function fetchCitySuggestions(query) {
+    try {
+        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=10&language=en&format=json`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.results) {
+            suggestionsList.classList.add('hidden');
+            return;
+        }
+
+        showSuggestions(data.results);
+    } catch (error) {
+        console.error("Error fetching suggestions:", error);
+    }
+}
+
+function showSuggestions(cities) {
+    suggestionsList.innerHTML = ''; 
+    suggestionsList.classList.remove('hidden');
+
+    cities.forEach(city => {
+        const li = document.createElement('li');
+        
+        let locationParts = [city.name];
+        if (city.admin1 && city.admin1 !== city.name) locationParts.push(city.admin1); 
+        if (city.country) locationParts.push(city.country);
+
+        const locationText = locationParts.join(', ');
+        li.textContent = locationText; 
+
+        li.addEventListener('click', () => {
+            selectCity(city);
+        });
+
+        suggestionsList.appendChild(li);
+    });
+}
+
+function selectCity(cityData) {
+    let locationParts = [cityData.name];
+    if (cityData.admin1 && cityData.admin1 !== cityData.name) locationParts.push(cityData.admin1);
+    if (cityData.country) locationParts.push(cityData.country);
+    
+    const fullLocationName = locationParts.join(', ');
+
+    cityInput.value = fullLocationName;
+    suggestionsList.classList.add('hidden');
+
+    currentLat = cityData.latitude;
+    currentLon = cityData.longitude;
+    locationDisplay.textContent = fullLocationName;
+    
+    getWeatherData();
+}
+
 async function getWeatherData() {
-    // Note: Added 'apparent_temperature_max' and 'wind_speed_10m_max' to daily for better future data
     let url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code,visibility&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,wind_speed_10m_max,precipitation_sum&timezone=auto`;
 
     if (unitSettings.temperature === 'fahrenheit') url += '&temperature_unit=fahrenheit';
@@ -161,22 +289,15 @@ function updateActiveOption(opt1, opt2, selected) {
     });
 }
 
-
 // ==============================================
 // 5. UI UPDATE FUNCTIONS
 // ==============================================
 
 function updateUI(data) {
-    // 1. Populate Dropdown first
     updateDaySelect(data.daily);
-
-    // 2. Default to showing "Today" (Index 0)
-    updateMainCard(0);
-    
-    // 3. Update Hourly
+    updateMainCard(0); 
     updateHourlyForecast(data);
 
-    // 4. Update Daily Grid (7 Days)
     const daily = data.daily;
     dailyGrid.innerHTML = ''; 
     for (let i = 0; i < 7; i++) {
@@ -197,17 +318,14 @@ function updateUI(data) {
     }
 }
 
-// --- NEW FUNCTION: Updates Main Card & Highlights based on selection ---
 function updateMainCard(index) {
     const data = storedWeatherData;
     const current = data.current;
     const daily = data.daily;
 
-    // Determine if we should show "Live" data or "Forecast" data
     let temp, icon, feels, wind, precip, dateStr;
     
     if (index === 0) {
-        // CASE: TODAY -> Use Current Object (More accurate for "Now")
         temp = Math.round(current.temperature_2m);
         icon = getWeatherIconName(current.weather_code);
         feels = Math.round(current.apparent_temperature);
@@ -216,12 +334,9 @@ function updateMainCard(index) {
         
         const now = new Date();
         dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
-        
-        // Use live humidity
         humidity.textContent = current.relative_humidity_2m;
     } else {
-        // CASE: FUTURE DAY -> Use Daily Object
-        temp = Math.round(daily.temperature_2m_max[index]); // Show High Temp
+        temp = Math.round(daily.temperature_2m_max[index]); 
         icon = getWeatherIconName(daily.weather_code[index]);
         feels = Math.round(daily.apparent_temperature_max[index]);
         wind = Math.round(daily.wind_speed_10m_max[index]);
@@ -229,21 +344,16 @@ function updateMainCard(index) {
         
         const dateObj = new Date(daily.time[index]);
         dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
-
-        // Daily API doesn't give Avg Humidity easily, so we show "--" or estimate
         humidity.textContent = "--"; 
     }
 
-    // Update DOM
     currentTemp.textContent = temp;
     weatherIcon.src = `./assets/images/${icon}`;
     dateDisplay.textContent = dateStr;
-    
     feelsLike.textContent = feels;
     windSpeed.textContent = wind;
     precipitation.textContent = precip;
 
-    // Update Units Text
     if(windUnitDisplay) windUnitDisplay.textContent = (unitSettings.wind === 'mph') ? 'mph' : 'km/h';
     if(precipUnitDisplay) precipUnitDisplay.textContent = (unitSettings.precipitation === 'inch') ? 'in' : 'mm';
 }
@@ -256,7 +366,7 @@ function updateDaySelect(daily) {
         
         const option = document.createElement('option');
         option.value = i; 
-        option.textContent = (i === 0) ? `Today` : fullDayName; // Keep "Today" for clarity
+        option.textContent = (i === 0) ? `Today` : fullDayName; 
         
         hourlyDaySelect.appendChild(option);
     }
@@ -267,7 +377,6 @@ function updateHourlyForecast(data) {
     hourlyList.innerHTML = ''; 
     
     const dayIndex = parseInt(hourlyDaySelect.value); 
-    
     let startIndex = dayIndex * 24; 
     let endIndex = startIndex + 24;
 
@@ -309,5 +418,30 @@ function getWeatherIconName(code) {
     return "icon-sunny.webp"; 
 }
 
-// Start App
-getCityCoordinates("Berlin");
+
+// ==============================================
+// 6. INITIALIZATION (Auto-Detect Location)
+// ==============================================
+
+function initApp() {
+    if (navigator.geolocation) {
+        // Try to get user's location
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                // Success: Use their location
+                onLocationSuccess(position);
+            },
+            (error) => {
+                // Error/Denied: Fallback to default city
+                console.log("Location access denied or error. Defaulting to Berlin.");
+                getCityCoordinates("Berlin");
+            }
+        );
+    } else {
+        // Browser doesn't support geolocation: Default to Berlin
+        getCityCoordinates("Berlin");
+    }
+}
+
+// Run the initialization
+initApp();
