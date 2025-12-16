@@ -1,3 +1,6 @@
+/* =========================================
+   1. GLOBAL RESET & VARIABLES
+   ========================================= */
 :root {
     --bg-dark: #0B131E;
     --bg-card: #202B3B;
@@ -14,24 +17,35 @@
     font-family: 'Bricolage Grotesque', sans-serif;
 }
 
+/* PREVENT PAGE OVERFLOW (Crucial Fix) */
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden; /* Cuts off anything sticking out */
+    position: relative;
+}
+
 body {
     background-color: var(--bg-dark);
     color: var(--text-white);
     display: flex;
     flex-direction: column; 
     align-items: center;
-    justify-content: flex-start; /* CRITICAL FIX: Allows scrolling on mobile */
+    justify-content: flex-start;
     min-height: 100vh;
     padding: 20px;
-    padding-top: 40px; /* Adds breathing room at the top */
+    padding-top: 30px;
 }
 
 .app-wrapper {
     width: 100%;
     max-width: 1100px;
+    margin: 0 auto;
 }
 
-/* --- HEADER --- */
+/* =========================================
+   2. HEADER & TOGGLES
+   ========================================= */
 header {
     display: flex;
     justify-content: space-between;
@@ -119,7 +133,9 @@ header {
     color: white;
 }
 
-/* --- SEARCH SECTION --- */
+/* =========================================
+   3. SEARCH SECTION
+   ========================================= */
 .search-section {
     margin-bottom: 2rem;
 }
@@ -158,7 +174,6 @@ header {
     outline: none;
 }
 
-/* Location Button */
 #location-btn {
     background-color: var(--bg-card); 
     border: none;
@@ -231,18 +246,33 @@ header {
     background-color: #334155;
 }
 
-/* --- DASHBOARD GRID --- */
+/* =========================================
+   4. DASHBOARD GRID & CARDS
+   ========================================= */
 .dashboard-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 20px;
+    width: 100%; /* Ensure it fits wrapper */
 }
 
-/* LEFT COL */
+/* Left & Right Cols */
 .left-col {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    min-width: 0; /* Prevents flex items from overflowing */
+}
+
+.right-col {
+    background-color: var(--bg-card);
+    border-radius: 20px;
+    padding: 20px;
+    height: 100%;
+    max-height: 700px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 
 /* Weather Card */
@@ -355,17 +385,7 @@ header {
     display: block;
 }
 
-/* RIGHT COL */
-.right-col {
-    background-color: var(--bg-card);
-    border-radius: 20px;
-    padding: 20px;
-    height: 100%;
-    max-height: 700px;
-    display: flex;
-    flex-direction: column;
-}
-
+/* Hourly Forecast (Right Col) */
 .hourly-header {
     display: flex;
     justify-content: space-between;
@@ -429,7 +449,7 @@ header {
     font-weight: 700;
 }
 
-/* --- FOOTER --- */
+/* FOOTER */
 .attribution {
     font-size: 11px;
     text-align: center;
@@ -443,16 +463,19 @@ header {
     text-decoration: none;
 }
 
-/* --- MEDIA QUERIES --- */
+/* =========================================
+   5. MEDIA QUERIES (MOBILE FIXES)
+   ========================================= */
 
-/* Tablet & Smaller Laptops */
+/* Tablet (900px) */
 @media (max-width: 900px) {
     .dashboard-grid {
-        grid-template-columns: 1fr; /* Stack Left and Right columns */
+        grid-template-columns: 1fr; /* Stack columns */
     }
 
     .daily-grid {
-        overflow-x: auto; /* Allow sideways scrolling for days */
+        display: flex; /* Fix for overflow */
+        overflow-x: auto;
         padding-bottom: 10px;
     }
     
@@ -461,69 +484,83 @@ header {
     }
 }
 
-/* Mobile Phones */
-/* Mobile Phones */
+/* Mobile (600px) - IMPERIAL DESIGN */
 @media (max-width: 600px) {
-    /* 1. Force everything onto ONE line */
-    .search-container {
-        flex-wrap: nowrap; /* Prevent stacking */
-        gap: 8px; /* Smaller gap to fit everything */
-    }
-
-    /* 2. Adjust Input Box */
-    .search-box {
-        width: auto;
-        flex-grow: 1; /* Let input take all remaining space */
-        padding: 0 12px; /* Smaller padding */
-        height: 48px; /* Good touch target size */
-        order: 0; /* Reset order */
-    }
-
-    /* Hide the magnifying glass icon INSIDE the input to save space */
-    .search-box i {
-        display: none; 
-    }
-
-    .search-box input {
-        font-size: 16px; /* Prevents auto-zoom on iPhones */
-        width: 100%;
-    }
-
-    /* 3. Location Button (Square) */
-    #location-btn {
-        width: 48px; /* Square shape */
-        height: 48px;
-        padding: 0;
-        margin-top: 0;
-        order: 0;
-        flex: none; /* Don't stretch */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* 4. Search Button */
-    #search-btn {
-        height: 48px;
-        padding: 0 15px; /* Tighter padding */
-        margin-top: 0;
-        order: 0;
-        flex: none; /* Don't stretch */
-    }
-
-    /* Adjust font sizes for headers */
-    .search-section h1 {
-        font-size: 1.2rem;
-        margin-bottom: 10px;
+    
+    /* 1. Global Width Locks */
+    html, body {
+        overflow-x: hidden !important;
+        width: 100vw !important;
+        padding: 15px !important;
+        padding-top: 30px !important;
     }
     
     .app-wrapper {
-        width: 100%; 
+        width: 100% !important;
+    }
+
+    /* 2. Grid Reset (Fixes the overflow cutting) */
+    .dashboard-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
     }
     
-    /* Ensure body scrolls correctly */
-    body {
-        padding-top: 20px;
-        justify-content: flex-start;
+    .left-col, .right-col {
+        width: 100% !important;
+    }
+
+    /* 3. Imperial Header */
+    .search-section h1 {
+        text-align: center;
+        font-size: 2rem !important;
+        font-weight: 800;
+        margin-bottom: 25px;
+    }
+
+    /* 4. Imperial Search Bar (Stacking) */
+    .search-container {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+
+    /* Input - Top Row */
+    .search-box {
+        width: 100% !important;
+        height: 55px !important;
+        order: 1;
+        margin-bottom: 5px;
+    }
+    
+    .search-box i {
+        display: block !important;
+    }
+
+    /* Buttons - Bottom Row */
+    #location-btn {
+        order: 2;
+        width: 55px !important;
+        height: 55px !important;
+        flex: none !important;
+    }
+
+    #search-btn {
+        order: 3;
+        flex: 1 !important; /* Fill space */
+        height: 55px !important;
+    }
+    
+    /* 5. Scroll Fixes */
+    .daily-forecast {
+        width: 100% !important;
+        overflow: hidden;
+    }
+    
+    .daily-grid {
+        display: flex !important;
+        overflow-x: auto !important;
+        padding-bottom: 10px;
     }
 }
