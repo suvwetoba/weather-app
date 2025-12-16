@@ -160,9 +160,18 @@ function onLocationError(error) {
     alert("Unable to retrieve your location. Please check your browser permissions.");
 }
 
+// ==============================================
+// UPDATE THIS FUNCTION IN APP.JS
+// ==============================================
+
 async function getCityCoordinates(cityName) {
+    // 1. CLEAN THE SEARCH TERM
+    // If input is "Warri, Delta, Nigeria", we only want to search for "Warri"
+    // The API often fails if you send the full "City, State, Country" string.
+    const searchTerm = cityName.split(',')[0].trim(); 
+
     try {
-        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${cityName}&count=1&language=en&format=json`;
+        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${searchTerm}&count=1&language=en&format=json`;
         const geoResponse = await fetch(geoUrl);
         const geoData = await geoResponse.json();
 
@@ -171,12 +180,17 @@ async function getCityCoordinates(cityName) {
             return;
         }
 
+        // 2. SUCCESS
         const { latitude, longitude, name, country, admin1 } = geoData.results[0];
         currentLat = latitude;
         currentLon = longitude;
         
+        // Display full details nicely
         const displayLocation = admin1 ? `${name}, ${admin1}, ${country}` : `${name}, ${country}`;
         locationDisplay.textContent = displayLocation;
+        
+        // Update Search Box to match what we found (Optional, keeps it clean)
+        cityInput.value = displayLocation;
         
         getWeatherData();
 
